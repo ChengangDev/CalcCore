@@ -194,11 +194,11 @@ class Move:
     def __init__(self, max_size=60):
         self._max_size = max_size
         #+1 for element being popped
-        self._q = RingBuffer(max_size+1, float)
-        self._mvavg = RingBuffer(max_size+1, float)
-        self._mvsum = RingBuffer(max_size+1, float)
-        self._mvmin = RingBuffer(max_size+1, float)
-        self._mvmax = RingBuffer(max_size+1, float)
+        self._q = RingBuffer(max_size, float)
+        self._mvavg = RingBuffer(max_size, float)
+        self._mvsum = RingBuffer(max_size, float)
+        self._mvmin = RingBuffer(max_size, float)
+        self._mvmax = RingBuffer(max_size, float)
 
     def push(self, num):
         self._q.push(num)
@@ -228,3 +228,28 @@ class Move:
             self._mvsum[i] = (self._mvsum[i-1] + self._q[i])
             self._mvavg[i] = float(self._mvsum[i-1] / (i+1))
 
+
+class RatioMove(Move):
+    '''
+
+    '''
+    def __init__(self, pivot, max_size=60):
+        self._pivot = pivot
+        Move.__init__(self, max_size)
+
+    def push(self, num):
+        Move.push(self, (num-self._pivot)/self._pivot)
+
+
+class DRMove(Move):
+    '''
+
+    '''
+    def __init__(self, pivot, max_size=60):
+        self._pivot = pivot
+        self._last = pivot
+        Move.__init__(self, max_size)
+
+    def push(self, num):
+        Move.push(self, (num-self._last)/self._pivot)
+        self._last = num
