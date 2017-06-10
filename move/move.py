@@ -195,13 +195,17 @@ class Move:
         self._max_size = max_size
         #+1 for element being popped
         self._q = RingBuffer(max_size, float)
-        self._mvavg = RingBuffer(max_size, float)
-        self._mvsum = RingBuffer(max_size, float)
-        self._mvmin = RingBuffer(max_size, float)
-        self._mvmax = RingBuffer(max_size, float)
+        self._mvavg = [0.0 for x in range(max_size)]
+        self._mvsum = [0.0 for x in range(max_size)]
+        self._mvmin = [0.0 for x in range(max_size)]
+        self._mvmax = [0.0 for x in range(max_size)]
 
     def push(self, num):
         self._q.push(num)
+        self.__mvall()
+
+    def pop(self):
+        self._q.pop()
         self.__mvall()
 
     def ma(self, n):
@@ -229,7 +233,7 @@ class Move:
             self._mvavg[i] = float(self._mvsum[i-1] / (i+1))
 
 
-class RatioMove(Move):
+class RMove(Move):
     '''
 
     '''
@@ -253,3 +257,17 @@ class DRMove(Move):
     def push(self, num):
         Move.push(self, (num-self._last)/self._pivot)
         self._last = num
+
+
+class MMove(Move):
+    '''
+
+    '''
+    def __init__(self, open, max_size=4800):
+        self._open = open
+        self._last = open
+        Move.__init__(self, max_size)
+
+    def push(self, price, count, duration):
+        Move.push(abs(price-self._last)/(price*count)*duration)
+        self._last = price

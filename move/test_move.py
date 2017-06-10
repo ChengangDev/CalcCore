@@ -1,6 +1,6 @@
 import unittest
 
-import move
+from . import move
 
 class TestMove(unittest.TestCase):
     def test_mv(self):
