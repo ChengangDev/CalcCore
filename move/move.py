@@ -176,8 +176,6 @@ class RingBuffer(Sequence):
         self._arr[index] = item
 
 
-
-
     def __iter__(self):
         # alarmingly, this is comparable in speed to using itertools.chain
         return iter(self._unwrap())
@@ -191,21 +189,23 @@ class Move:
     '''
     '''
 
-    def __init__(self, max_size=60):
-        self._max_size = max_size
-        #+1 for element being popped
-        self._q = RingBuffer(max_size, float)
-        self._mvavg = [0.0 for x in range(max_size)]
-        self._mvsum = [0.0 for x in range(max_size)]
-        self._mvmin = [0.0 for x in range(max_size)]
-        self._mvmax = [0.0 for x in range(max_size)]
+    def __init__(self, calc_size=60):
+        self._calc_size = calc_size
+        self._q = RingBuffer(calc_size, float)
+        self._mvavg = [0.0 for x in range(calc_size)]
+        self._mvsum = [0.0 for x in range(calc_size)]
+        self._mvmin = [0.0 for x in range(calc_size)]
+        self._mvmax = [0.0 for x in range(calc_size)]
+        self._count = 0
 
     def push(self, num):
         self._q.push(num)
+        self._count += 1
         self.__mvall()
 
     def pop(self):
         self._q.pop()
+        self._count -= 1
         self.__mvall()
 
     def ma(self, n):
@@ -226,20 +226,26 @@ class Move:
         self._mvsum[0] = self._q[0]
         self._mvavg[0] = self._q[0]
 
-        for i in range(1, self._max_size):
-            self._mvmin[i] = min(self._mvmin[i-1], self._q[i])
-            self._mvmax[i] = max(self._mvmax[i-1], self._q[i])
-            self._mvsum[i] = (self._mvsum[i-1] + self._q[i])
-            self._mvavg[i] = float(self._mvsum[i-1] / (i+1))
+        for i in range(1, self._calc_size):
+            if i >= self._count:
+                self._mvmin[i] = self._mvmin[i-1]
+                self._mvmax[i] = self._mvmax[i-1]
+                self._mvsum[i] = self._mvsum[i-1]
+                self._mvavg[i] = self._mvavg[i-1]
+            else:
+                self._mvmin[i] = min(self._mvmin[i-1], self._q[i])
+                self._mvmax[i] = max(self._mvmax[i-1], self._q[i])
+                self._mvsum[i] = (self._mvsum[i-1] + self._q[i])
+                self._mvavg[i] = float(self._mvsum[i] / (i+1))
 
 
 class RMove(Move):
     '''
 
     '''
-    def __init__(self, pivot, max_size=60):
+    def __init__(self, pivot, calc_size=60):
         self._pivot = pivot
-        Move.__init__(self, max_size)
+        Move.__init__(self, calc_size)
 
     def push(self, num):
         Move.push(self, (num-self._pivot)/self._pivot)
@@ -249,10 +255,10 @@ class DRMove(Move):
     '''
 
     '''
-    def __init__(self, pivot, max_size=60):
+    def __init__(self, pivot, calc_size=60):
         self._pivot = pivot
         self._last = pivot
-        Move.__init__(self, max_size)
+        Move.__init__(self, calc_size)
 
     def push(self, num):
         Move.push(self, (num-self._last)/self._pivot)
@@ -263,10 +269,10 @@ class MMove(Move):
     '''
 
     '''
-    def __init__(self, open, max_size=4800):
+    def __init__(self, open, calc_size=4800):
         self._open = open
         self._last = open
-        Move.__init__(self, max_size)
+        Move.__init__(self, calc_size)
 
     def push(self, price, count, duration):
         Move.push(abs(price-self._last)/(price*count)*duration)
