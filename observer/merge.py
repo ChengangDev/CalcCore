@@ -6,9 +6,8 @@ class Merge:
     '''
 
     '''
-    def __init__(self, interval, start=0):
+    def __init__(self, interval):
         self._interval = interval
-        self._start = start
         self._sum = 0
         self._count = 0
         self._index = 0
@@ -21,7 +20,7 @@ class Merge:
         if time < self._last:
             return None
 
-        index = int((time-self._start)/self._interval)
+        index = int((time)/self._interval)
         if index == self._index or self._count == 0:
             self._last = time
             self._index = index

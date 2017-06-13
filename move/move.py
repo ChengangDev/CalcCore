@@ -20,7 +20,7 @@ class RingBuffer(Sequence):
 			If false, throw an IndexError when trying to append to an alread
 			full buffer
 		"""
-        self._arr = np.empty(capacity, dtype)
+        self._arr = np.zeros(capacity, dtype)
         self._left_index = 0
         self._right_index = 0
         self._capacity = capacity
@@ -207,6 +207,9 @@ class Move:
         self._q.pop()
         self._count -= 1
         self.__mvall()
+
+    def t_minus(self, n):
+        return self._q[n]
 
     def ma(self, n):
         return self._mvavg[n-1]
