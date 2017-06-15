@@ -3,7 +3,9 @@
 import numpy as np
 from datetime import datetime
 from datetime import timedelta
+import time
 import tushare as ts
+import quantum
 
 class Fetcher:
     '''
@@ -37,9 +39,28 @@ class Fetcher:
 
         return None
 
-    def get_hist_tick(self):
-        return ts.get_tick_data(self._code, self._date)
+    @staticmethod
+    def get_hist_tick(code, date):
+        return ts.get_tick_data(code, date)
+
+    @staticmethod
+    def get_realtime_deal(code):
+        df = ts.get_realtime_quotes(code)
+        while(df is None):
+            time.sleep(2)
+            print('.', end='', flush=True)
+            df = ts.get_realtime_quotes(code)
+
+        return {
+            "time": df.loc[0, 'time'],
+            "name": df.loc[0, 'name'],
+            "code": df.loc[0, 'code'],
+            "price": df.loc[0, "price"],
+            "volume": df.loc[0, 'volume'],
+        }
 
 
 if __name__ == "__main__":
-    print(ts.get_h_data('300104'))
+    #ob.review('000858', '2017-06-14')
+    df = Fetcher.get_realtime_deal('600895')
+    print(df)
