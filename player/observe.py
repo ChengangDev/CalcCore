@@ -2,9 +2,10 @@
 
 from datetime import datetime
 import time
-import merge
-import fetch
-import quantum
+import logging
+from player import merge
+from . import fetch
+from player import quantum
 from move import move
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -94,6 +95,7 @@ class CliffObserver:
         volume = dict['volume']
         seconds = self._quant.time_to_seconds(time_str)
         t = self._mg.reduce(seconds, float(price), int(volume)) # remove duplicate and merge
+        #print(t)
         if t is None:
             return False
 
@@ -110,10 +112,11 @@ class CliffObserver:
 
     def __catch_cliff(self):
         diff300 = self._rmv_dict["diff300"][-1]
+        seconds = self._index[-1] * 15  # merge interval
+        time_str = self._quant.seconds_to_time(seconds)
+        ratio = self._rmv_dict["ma15"][-1]
+        print("diff300: {} {} {} {}".format(self._code, time_str, diff300, ratio))
         if diff300 > 0.01 or diff300 < -0.01:
-            seconds = self._index[-1] * 15  # merge interval
-            time_str = self._quant.seconds_to_time(seconds)
-            ratio = self._rmv_dict["ma15"][-1]
             print("Catch Cliff: {} {} {} {}".format(self._code, time_str, diff300, ratio))
 
 
@@ -123,8 +126,8 @@ class CliffObserver:
 
         while(True):
             dict = fetch.Fetcher.get_realtime_deal(self._code)
-            print(datetime.now(), end=' ', flush=False)
-            print(dict)
+            #print(datetime.now(), end=' ', flush=False)
+            #print(dict)
             if self.__feed(dict):
                 self.__catch_cliff()
             time.sleep(fetch_interval)
@@ -141,8 +144,8 @@ class CliffObserver:
                 "price": df.loc[i, "price"],
                 "volume": df.loc[i, 'volume'],
              }
-            #print(datetime.now(), end=' ', flush=False)
-            #print(dict)
+            print(datetime.now(), end=' ', flush=False)
+            print(dict)
             if self.__feed(dict):
                 self.__catch_cliff()
             time.sleep(fetch_interval)

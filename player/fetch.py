@@ -5,7 +5,6 @@ from datetime import datetime
 from datetime import timedelta
 import time
 import tushare as ts
-import quantum
 
 class Fetcher:
     '''
@@ -63,4 +62,5 @@ class Fetcher:
 if __name__ == "__main__":
     #ob.review('000858', '2017-06-14')
     df = Fetcher.get_realtime_deal('600895')
+    df = Fetcher.get_hist_tick('600895', '2017-06-15')
     print(df)

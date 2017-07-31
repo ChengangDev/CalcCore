@@ -1,5 +1,5 @@
 import unittest
-from observer import fetch
+from player import fetch
 
 class MyTestCase(unittest.TestCase):
     def test_something(self):
