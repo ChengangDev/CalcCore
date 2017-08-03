@@ -62,3 +62,5 @@ class Merge:
             self._open = self._close = self._max = self._min = num
             return t
 
+    def expand(self, index):
+        return self._interval * index

@@ -6,7 +6,7 @@ from datetime import timedelta
 import multiprocessing
 import time
 
-from player import observe
+from operate import observe
 
 class ObProcess(multiprocessing.Process):
     def __init__(self, code, simulate=False):
@@ -14,7 +14,6 @@ class ObProcess(multiprocessing.Process):
         self._code = code
         self._simulate = simulate
         self._ob = observe.CliffObserver(code)
-
 
     def run(self):
         print("Start process {0}".format(self._code))

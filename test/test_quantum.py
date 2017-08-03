@@ -1,5 +1,5 @@
 import unittest
-from player import quantum
+from operate import quantum
 
 class MyTestCase(unittest.TestCase):
     def test_something(self):

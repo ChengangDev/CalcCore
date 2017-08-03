@@ -1,5 +1,5 @@
 import unittest
-from player import merge
+from operate import merge
 
 
 class MyTestCase(unittest.TestCase):

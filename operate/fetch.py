@@ -6,7 +6,7 @@ from datetime import timedelta
 import time
 import tushare as ts
 
-class Fetcher:
+class Fetch:
     '''
 
     '''
@@ -61,6 +61,6 @@ class Fetcher:
 
 if __name__ == "__main__":
     #ob.review('000858', '2017-06-14')
-    df = Fetcher.get_realtime_deal('600895')
-    df = Fetcher.get_hist_tick('600895', '2017-06-15')
+    df = Fetch.get_realtime_deal('600895')
+    df = Fetch.get_hist_tick('600895', '2017-06-15')
     print(df)
