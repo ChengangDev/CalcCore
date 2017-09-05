@@ -4,8 +4,9 @@ import logging
 class Note(object):
     ''''''
 
-    def __init__(self):
-        self._lg = logging.getLogger('')
+    def __init__(self, name=''):
+        self._lg = logging.getLogger(name)
+
 
     def info(self, msg):
         self._lg.info(msg)
@@ -15,3 +16,16 @@ class Note(object):
 
     def warning(self, msg):
         self._lg.warning(msg)
+
+    def error(self, msg):
+        self._lg.error(msg)
+
+    def critical(self, msg):
+        self._lg.critical(msg)
+
+class NoteCliff(Note):
+
+    def __init__(self):
+
+        Note.__init__(log)
+

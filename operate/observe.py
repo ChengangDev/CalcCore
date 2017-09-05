@@ -4,8 +4,9 @@ from datetime import datetime
 import time
 
 from operate import merge
-from . import fetch
+from operate import fetch
 from operate import quantum
+from operate import note
 from move import move
 import pandas as pd
 import matplotlib.pyplot as plt
