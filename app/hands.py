@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import tushare as ts
 from datetime import datetime

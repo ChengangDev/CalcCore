@@ -236,7 +236,7 @@ class Move:
                 self._mvsum[i] = self._mvsum[i-1]
                 self._mvavg[i] = self._mvavg[i-1]
             else:
-                self._mvmin[i] = min(self._mvmin[i-1], self._q[i])
+                self._mvmin[i] = min(self._mvmin[i-1], self._q[i])  #wrong
                 self._mvmax[i] = max(self._mvmax[i-1], self._q[i])
                 self._mvsum[i] = (self._mvsum[i-1] + self._q[i])
                 self._mvavg[i] = float(self._mvsum[i] / (i+1))
