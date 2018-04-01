@@ -11,13 +11,13 @@ assets = [
 ]
 
 T_columns = [
-    'bid_num',             #买量
-    'bid',                 #买价
+    'bid_num',             # 买量
+    'bid',                 # 买价
     'latest_price',
     'ask',
     'ask_num',
-    'hold',                #持仓
-    'change_ratio',        #涨幅
+    'hold',                # 持仓
+    'change_ratio',        # 涨幅
     'strike',
     'pre_close',
     'open',
@@ -68,6 +68,7 @@ OHLC_columns = [
     'v'
 ]
 
+OPTION_INDEX_PREFIX = 'CON_OP_'
 
 def get_trading_months(retry=3, pause=1):
     """
@@ -132,7 +133,7 @@ def get_trading_option_list(asset_code, year_month, retry=3, pause=1):
     :param year_month: e.g. '2018-04'
     :param retry:
     :param pause:
-    :return:  DataFrame(columns=columns, index=sina_option_code_list)
+    :return:  DataFrame(columns=columns, index=option_index_list)
     """
     if len(asset_code) != 6:
         raise Exception("Wrong asset code format:{0}.".format(asset_code))
@@ -155,8 +156,9 @@ def get_trading_option_list(asset_code, year_month, retry=3, pause=1):
             logging.debug(str_up)
             logging.debug(str_down)
             str_up_down = str_up + str_down
-            str_up_down = str_up_down[:-1]  # trim last ','
+            str_up_down = str_up_down[:-1]      # trim last ','
             index = str_up_down.split(',')
+            index = [e.replace(OPTION_INDEX_PREFIX, '') for e in index] # replace prefix
 
             td_url = "http://hq.sinajs.cn/list={0}".format(str_up_down)
             logging.debug(td_url)
@@ -189,18 +191,18 @@ def get_trading_option_list(asset_code, year_month, retry=3, pause=1):
     return df
 
 
-def get_trading_option_history_ohlc(sina_option_code, retry=3, pause=1):
+def get_trading_option_history_ohlc(option_index, retry=3, pause=1):
     """
 
-    :param sina_option_code: e.g. 'CON_OP_10001209'  from get_trading_option_list()
+    :param option_index: e.g. '10001209'  from get_trading_option_list()
     :param retry:
     :param pause:
     :return: DataFrame(columns=OHLC_columns)
     """
-    if len(sina_option_code) != 15:
-        raise Exception("Wrong sina_option_code format:{0}.".fomrat(sina_option_code))
+    if len(option_index) != 8:
+        raise Exception("Wrong option_index format:{0}.".format(option_index))
     url = "http://stock.finance.sina.com.cn/futures/api/openapi.php/StockOptionDaylineService.getSymbolInfo" \
-          "?symbol={0}".format(sina_option_code)
+          "?symbol={0}{1}".format(OPTION_INDEX_PREFIX, option_index)
     logging.debug(url)
     df = pd.DataFrame(columns=OHLC_columns)
     for _ in range(retry):
@@ -222,4 +224,4 @@ def get_trading_option_history_ohlc(sina_option_code, retry=3, pause=1):
 
 dbgFormatter = "%(levelname)s:%(filename)s:%(lineno)s %(funcName)s() %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=dbgFormatter)
-df = get_trading_option_history_ohlc('CON_OP_10001209')
+df = get_trading_option_history_ohlc('10001209')
