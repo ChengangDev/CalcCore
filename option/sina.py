@@ -184,7 +184,7 @@ def get_trading_option_list(asset_code, year_month, retry=3, pause=1):
                 df.loc[i] = list_detail
 
             df.index = index
-            logging.debug("\n{0}".format(df.head(5)))
+            logging.debug("\n{0}".format(df.head(1)))
             return df
 
         time.sleep(pause)
@@ -214,7 +214,7 @@ def get_trading_option_history_ohlc(option_index, retry=3, pause=1):
 
             list_data = js['result']['data']
             df = pd.DataFrame(list_data)
-            logging.debug("\n{0}".format(df.head(3)))
+            logging.debug("\n{0}".format(df.head(1)))
             return df
         except Exception as e:
             logging.info(e)
