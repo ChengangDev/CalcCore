@@ -223,5 +223,7 @@ def get_trading_option_history_ohlc(option_index, retry=3, pause=1):
     return df
 
 dbgFormatter = "%(levelname)s:%(filename)s:%(lineno)s %(funcName)s() %(message)s"
-logging.basicConfig(level=logging.DEBUG, format=dbgFormatter)
-df = get_trading_option_history_ohlc('10001209')
+# logging.basicConfig(level=logging.DEBUG, format=dbgFormatter)
+# df = get_trading_option_history_ohlc('10001209')
+# df = get_trading_option_list('510050', '2018-06')
+# print(df)
