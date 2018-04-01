@@ -10,7 +10,7 @@ assets = [
     {'code': '510050', 'name': '50ETF'},
 ]
 
-columns = [
+T_columns = [
     'bid_num',             #买量
     'bid',                 #买价
     'latest_price',
@@ -59,9 +59,25 @@ columns = [
     'label'
 ]
 
+OHLC_columns = [
+    'd',
+    'o',
+    'h',
+    'l',
+    'c',
+    'v'
+]
+
 
 def get_trading_months(retry=3, pause=1):
+    """
+
+    :param retry:
+    :param pause:
+    :return: ['2018-04', '2018-05', '2018-06', '2018-09']
+    """
     url = "http://stock.finance.sina.com.cn/futures/api/openapi.php/StockOptionService.getStockName"
+    logging.debug(url)
     for _ in range(retry):
         try:
             req = Request(url)
@@ -80,18 +96,18 @@ def get_trading_months(retry=3, pause=1):
         time.sleep(pause)
 
 
-def get_trading_expire_day(month='2018-04', retry=3, pause=1):
+def get_trading_expire_day(year_month='2018-04', retry=3, pause=1):
     """
 
-    :param month: e.g. '2011-7'
+    :param year_month: e.g. '2018-07'
     :param retry:
     :param pause:
-    :return:
+    :return: '2018-04-25'
     """
-    if month.index('-') != 4:
-        raise Exception("Wrong month format:{0}.".fomrat(month))
+    if year_month.index('-') != 4 or len(year_month) != 7:
+        raise Exception("Wrong year_month format:{0}.".format(year_month))
     url = "http://stock.finance.sina.com.cn/futures/api/openapi.php/StockOptionService.getRemainderDay"
-    url = url + "?date=" + month
+    url = url + "?date=" + year_month
     logging.debug(url)
     for _ in range(retry):
         try:
@@ -109,20 +125,24 @@ def get_trading_expire_day(month='2018-04', retry=3, pause=1):
         time.sleep(pause)
 
 
-def get_trading_option_list(option_code_10, retry=3, pause=1):
+def get_trading_option_list(asset_code, year_month, retry=3, pause=1):
     """
 
-    :param option_code_10: e.g. '5100501804'
+    :param asset_code: e.g. '510050'
+    :param year_month: e.g. '2018-04'
     :param retry:
     :param pause:
-    :return: DataFrame
+    :return:  DataFrame(columns=columns, index=sina_option_code_list)
     """
-    if len(option_code_10) != 10:
-        raise Exception("Wrong option code format:{0}.".format(option_code_10))
+    if len(asset_code) != 6:
+        raise Exception("Wrong asset code format:{0}.".format(asset_code))
+    if len(year_month) != 7 or year_month.index('-') != 4:
+        raise Exception("Wrong year_month format:{0}.".format(year_month))
+    option_code_10 = "{0}{1}{2}".format(asset_code, year_month[2:4], year_month[5:])
     url = "http://hq.sinajs.cn/list=OP_UP_{0},OP_DOWN_{1}".\
         format(option_code_10, option_code_10)
     logging.debug(url)
-    df = pd.DataFrame(columns=columns)
+    df = pd.DataFrame(columns=T_columns)
     for t in range(retry):
         try:
             req = Request(url)
@@ -135,7 +155,7 @@ def get_trading_option_list(option_code_10, retry=3, pause=1):
             logging.debug(str_up)
             logging.debug(str_down)
             str_up_down = str_up + str_down
-            str_up_down = str_up_down[:-1]
+            str_up_down = str_up_down[:-1]  # trim last ','
             index = str_up_down.split(',')
 
             td_url = "http://hq.sinajs.cn/list={0}".format(str_up_down)
@@ -150,13 +170,13 @@ def get_trading_option_list(option_code_10, retry=3, pause=1):
             str = td_res.decode('gbk')
             list = str.split('\n')
             for i in range(len(list)):
-                if len(list[i]) < 20:
-                    logging.debug("skip:list[{0}]:{1}".format(i, list[i]))
+                if len(list[i]) < 20:  # trim empty element
+                    logging.debug("skip empty element:list[{0}]:{1}".format(i, list[i]))
                     continue
                 str_hq = list[i][list[i].index('"')+1:list[i].rindex('"')]
                 list_detail = str_hq.split(',')
-                if len(list_detail) != len(columns):
-                    logging.error(columns)
+                if len(list_detail) != len(T_columns):
+                    logging.error(T_columns)
                     logging.error(list_detail)
                     raise Exception("Option detail mismatch.")
                 df.loc[i] = list_detail
@@ -168,7 +188,38 @@ def get_trading_option_list(option_code_10, retry=3, pause=1):
         time.sleep(pause)
     return df
 
+
+def get_trading_option_history_ohlc(sina_option_code, retry=3, pause=1):
+    """
+
+    :param sina_option_code: e.g. 'CON_OP_10001209'  from get_trading_option_list()
+    :param retry:
+    :param pause:
+    :return: DataFrame(columns=OHLC_columns)
+    """
+    if len(sina_option_code) != 15:
+        raise Exception("Wrong sina_option_code format:{0}.".fomrat(sina_option_code))
+    url = "http://stock.finance.sina.com.cn/futures/api/openapi.php/StockOptionDaylineService.getSymbolInfo" \
+          "?symbol={0}".format(sina_option_code)
+    logging.debug(url)
+    df = pd.DataFrame(columns=OHLC_columns)
+    for _ in range(retry):
+        try:
+            req = Request(url)
+            res = urlopen(req, timeout=9).read()
+            js = json.loads(res.decode('utf-8'))
+            logging.debug(js)
+
+            list_data = js['result']['data']
+            df = pd.DataFrame(list_data)
+            logging.debug("\n{0}".format(df.head(3)))
+            return df
+        except Exception as e:
+            logging.info(e)
+
+        time.sleep(pause)
+    return df
+
 dbgFormatter = "%(levelname)s:%(filename)s:%(lineno)s %(funcName)s() %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=dbgFormatter)
-df = get_trading_option_list('5100501804')
-print(df.iloc[0])
+df = get_trading_option_history_ohlc('CON_OP_10001209')
